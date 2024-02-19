@@ -21,6 +21,7 @@ def input_matrix_values():
             for entr in entries_vector:
                 value = float(entr.get())
                 vector.append(value)
+            print(check_det)
             calculate_matrix(matrix, vector, size, accuracy, check_det)
         except ValueError:
             messagebox.showerror("418", "I'm a teapot, please make sure your entered values have the right format!")
@@ -99,6 +100,7 @@ def on_check_click():
 def check_change(check):
     global check_det
     check_det = not check
+    return check_det
 
 
 def on_file_button_click():
