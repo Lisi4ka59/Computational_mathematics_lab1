@@ -21,8 +21,8 @@ def show_answer(answer, matrix, vector, size, accuracy):
                 format_answer += (str(abs(int(matrix[i][j]) if matrix[i][j].is_integer() else matrix[i][j])) + "×X" +
                                   str(j + 1) + plus)
         format_answer += (
-                    str(abs(int(matrix[i][j + 1]) if matrix[i][j + 1].is_integer() else matrix[i][j + 1])) + "×X" +
-                    str(j + 2))
+                str(abs(int(matrix[i][j + 1]) if matrix[i][j + 1].is_integer() else matrix[i][j + 1])) + "×X" +
+                str(j + 2))
         format_answer += " = " + str(int(vector[i]) if vector[i].is_integer() else vector[i]) + "\n"
     format_answer += "\n" + "Ответ с точностью до " + str(accuracy) + ":" + "\n"
     format_answer += answer
@@ -31,23 +31,28 @@ def show_answer(answer, matrix, vector, size, accuracy):
     root.mainloop()
 
 
-def calculate_matrix(matrix, vector, size, accuracy):
+def calculate_matrix(matrix, vector, size, accuracy, check_determinant):
     rnd = 1
     rnd_accuracy = 0
     if '.' in str(accuracy):
         rnd = max(len(str(accuracy)) - str(accuracy).index('.') - 1, 3)
         rnd_accuracy = rnd + 3
     iteration_count = 0
-
-    if calculate_determinant(matrix) == 0:
-        show_answer("\nОпределитель матрицы равен 0! ", matrix, vector, size, accuracy)
-        return
-
-    diagonal_matrix, diagonal_vector = diagonal_dominance(matrix, size, vector, accuracy)
-    if diagonal_matrix is None:
+    try:
+        diagonal_matrix, diagonal_vector = diagonal_dominance(matrix, size, vector, accuracy)
+        if diagonal_matrix is None:
+            return
+    except TypeError:
         return
 
     # теперь у нас есть матрица составленная с диагональным преобладанием
+    if check_determinant:
+        if calculate_determinant(diagonal_matrix) == 0:
+            show_answer("\nОпределитель матрицы равен 0! ", matrix, vector, size, accuracy)
+            return
+
+    # проверка, если определитель равен нулю
+
     reduced_matrix = [[0.0 for _ in range(size + 1)] for _ in range(size)]
     reduced_vector = [0.0 for _ in range(size)]
     for i in range(size):
@@ -80,6 +85,7 @@ def calculate_matrix(matrix, vector, size, accuracy):
     for i in range(size):
         result += "X" + str(i + 1) + " = " + str(round(diagonal_vector_new[i], rnd)) + "\n"
     result += "\nОтвет был достигнут за число итераций = " + str(iteration_count) + "\n"
+    result += "\nПроверка того, что матрица не вырожденная " + ("" if check_determinant else "не ") + "проводилась.\n"
     result += "\nПогрешности:\n"
     for i in range(size):
         result += "X" + str(i + 1) + " = " + str(round(prom_vector_accuracy[i], rnd_accuracy)) + "\n"
@@ -87,6 +93,9 @@ def calculate_matrix(matrix, vector, size, accuracy):
 
 
 def calculate_determinant(matrix):
+    if len(matrix) == 1:
+        return matrix[0][0]
+
     if len(matrix) == 2:
         return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
 

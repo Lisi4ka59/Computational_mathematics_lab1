@@ -5,6 +5,7 @@ from calculating import calculate_matrix
 # Создание списка для хранения переменных, связанных с entry_matrix
 entries = []
 entries_vector = []
+check_det = False
 
 
 def input_matrix_values():
@@ -20,7 +21,7 @@ def input_matrix_values():
             for entr in entries_vector:
                 value = float(entr.get())
                 vector.append(value)
-            calculate_matrix(matrix, vector, size, accuracy)
+            calculate_matrix(matrix, vector, size, accuracy, check_det)
         except ValueError:
             messagebox.showerror("418", "I'm a teapot, please make sure your entered values have the right format!")
     except IndexError:
@@ -33,6 +34,9 @@ def input_matrix() -> None:
     label_size.pack_forget()
     label_accuracy.pack_forget()
     entry_accuracy.pack_forget()
+    label_check.pack_forget()
+    input_check_button.pack_forget()
+    label_check_dop.pack_forget()
 
     root.title("Ввод матрицы " + str(size) + "х" + str(size))
 
@@ -58,14 +62,15 @@ def on_input_matrix_size_click():
     size = 0
     input_value = entry.get()
     global accuracy
-    accuracy = float(entry_accuracy.get())
+
     try:
+        accuracy = float(entry_accuracy.get())
         size = int(input_value)
         if 2 <= size <= 20:
             input_matrix()
         else:
             messagebox.showwarning("Неверный ввод",
-                                   "Число должно быть от 2 до 20. Пожалуйста, введите корректное число.")
+                                   "Размерность матрицы должна быть от 2 до 20. Пожалуйста, введите корректное число.")
     except ValueError:
         messagebox.showerror("Ошибка", "Введено некорректное значение. Пожалуйста, введите целое число.")
 
@@ -81,6 +86,19 @@ def on_input_keyboard_button_click():
     # Создаем кнопки
     entry_accuracy.pack()
     input_matrix_size_button.pack()
+    label_check.pack()
+    input_check_button.pack()
+    label_check_dop.pack()
+
+
+def on_check_click():
+    check_change(check_det)
+    input_check_button.config(text="включено" if check_det else "выключено")
+
+
+def check_change(check):
+    global check_det
+    check_det = not check
 
 
 def on_file_button_click():
@@ -90,17 +108,20 @@ def on_file_button_click():
     try:
         try:
             try:
-                with open(file=file_name, mode="r", encoding="utf-8") as file:
+                with (open(file=file_name, mode="r", encoding="utf-8") as file):
                     vector = []
                     from_file_size = int(file.readline())
                     from_file_accuracy = float(file.readline())
+                    from_file_input = file.readline()
+                    from_file_check_determinant = True if "true" in from_file_input or "True" in from_file_input else False
+                    print(from_file_check_determinant)
                     matrix = [[0 for _ in range(from_file_size)] for _ in range(from_file_size)]
                     for i in range(from_file_size):
                         input_line = file.readline().split(" ")
                         for j in range(from_file_size):
                             matrix[i][j] = float(input_line[j])
                         vector.append(float(input_line[from_file_size]))
-                    calculate_matrix(matrix, vector, from_file_size, from_file_accuracy)
+                    calculate_matrix(matrix, vector, from_file_size, from_file_accuracy, from_file_check_determinant)
             except FileNotFoundError:
                 messagebox.showerror("418", "Can not find file!")
 
@@ -112,13 +133,13 @@ def on_file_button_click():
 
 
 def on_input_file_button_click():
-
     input_keyboard_button.pack_forget()
     input_file_button.pack_forget()
 
     entry_file_name.pack()
     input_file_name_button = tk.Button(root, text="Найти файл", command=on_file_button_click, width=15)
     input_file_name_button.pack()
+
 
 # Создаем главное окно
 root = tk.Tk()
@@ -146,6 +167,15 @@ label_size = tk.Label(root, text="Введите размер матрицы")
 label_size.pack_forget()
 label_accuracy = tk.Label(root, text="Введите точность подсчета")
 label_accuracy.pack_forget()
+label_check = tk.Label(root, text="Проверка, что определитель матрицы не равен нулю")
+label_check.pack_forget()
+label_check_dop = tk.Label(root, text="(не рекомендуется при большой размерности матрицы)")
+label_check_dop.pack_forget()
+
+# callback = (on_check_click(check_det), '%P')
+input_check_button = tk.Button(root, text="выключено", command=on_check_click,
+                               width=15, height=1)
+input_check_button.pack_forget()
 
 # Запускаем главный цикл обработки событий
 root.mainloop()
